@@ -4,7 +4,7 @@ import geopandas as gpd
 import pystac_client
 import planetary_computer
 import odc.stac
-
+import stackstac
 
 def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30"):
     """Loads MODIS data to an xarray dataset using Microsoft Planetary Computer"""
@@ -21,20 +21,20 @@ def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30"):
     # 3. Search the catalog
     print("Searching catalog")
     search = catalog.search(
-        collections=["modis-13Q1-061"],  # MPC uses a capital 'Q'
+        collections=["modis-13Q1-061"],
         bbox=tuple(aoi.total_bounds),
         datetime=datetime
     )
     items = search.item_collection()
     print(f"Found {len(items)} items.")
 
-    # create dc
+    # 4. Create the data cube targeting the GeoTIFF band explicitly
     cube = odc.stac.load(
         items,
-        assets=[f"250m_16_days_{index}"],
+        bands=[f"250m_16_days_{index}"],  # FIXED: changed 'assets' to 'bands'
         bbox=tuple(aoi.total_bounds),
-        crs="EPSG:4326",  # Forces standard Lat/Lon to match your AOI
-        resolution=0.00225  # ~250m converted to decimal degrees
+        crs="EPSG:4326",
+        resolution=0.00225
     )
 
     return cube
