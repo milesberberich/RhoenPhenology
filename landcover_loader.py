@@ -5,7 +5,7 @@ import pystac_client
 import planetary_computer
 import odc.stac
 
-def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30"):
+def landcover_loader(aoi_path, datetime="2025-01-01/2025-06-30"):
     """Loads MODIS data to an xarray dataset using Microsoft Planetary Computer"""
 
     # 1. Load aoi
@@ -20,7 +20,7 @@ def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30"):
     # 3. Search the catalog
     print("Searching catalog")
     search = catalog.search(
-        collections=["modis-13Q1-061"],
+        collections=["esa-cci-lc"],
         bbox=tuple(aoi.total_bounds),
         datetime=datetime
     )
@@ -29,7 +29,7 @@ def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30"):
     # 4. Create the data cube targeting the GeoTIFF band explicitly
     cube = odc.stac.load(
         items,
-        bands=[f"250m_16_days_{index}", "250m_16_days_VI_Quality"],  # FIXED: changed 'assets' to 'bands'
+        bands=["lccs_class"],  # FIXED: changed 'assets' to 'bands'
         bbox=tuple(aoi.total_bounds),
         crs="EPSG:4326",
         resolution=0.00225
