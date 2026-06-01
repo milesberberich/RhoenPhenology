@@ -18,8 +18,11 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
             index=index, datetime=f"{y}-01-01/{y}-12-30")
 
         # loading landcover
+        y_capped = y
+        if y > 2020:
+            y_capped = 2020
         lc = landcover_loader(
-            r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson", datetime=f"{y}-01-01/{y}-12-30",
+            r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson", datetime=f"{y_capped}-01-01/{y_capped}-12-30",
             as_single_layer=True)
 
         # filtering modis using landcover
