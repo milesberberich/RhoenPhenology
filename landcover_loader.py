@@ -37,12 +37,15 @@ def landcover_loader(aoi_path, datetime="2020-01-01/2020-12-30", as_single_layer
         crs="EPSG:4326",
         resolution=0.00225
     )
+    cube = cube.squeeze("time")
     # option to get only one layer back
     if as_single_layer == True:
         cube = cube["lccs_class"]
     # option to instantly clip to exact aoi, not only bounding box
     if clip_to_exact_aoi_outlines == True:
         cube = cube.rio.clip(aoi.geometry, aoi.crs, drop=True)
+
+    print("landcover loaded")
 
     return cube
 
