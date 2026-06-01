@@ -21,7 +21,9 @@ def get_srtm(aoi_path):
     # 4. Create the data cube targeting the GeoTIFF band explicitly
     cube = odc.stac.load(
         items,
+        bands = ["elevation"],
         bbox=tuple(aoi.total_bounds),
         crs="EPSG:4326",
-        resolution=0.00225
+        resolution=0.00027
     )
+    return cube

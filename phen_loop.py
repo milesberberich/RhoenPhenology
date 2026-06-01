@@ -5,7 +5,7 @@ import rioxarray
 from dea_tools.temporal import xr_phenology
 from tqdm.auto import tqdm
 
-def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 90], Save = True):
+def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True):
 
     years = list(range(start_year, end_year+1))
 
