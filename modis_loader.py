@@ -4,8 +4,10 @@ import geopandas as gpd
 import pystac_client
 import planetary_computer
 import odc.stac
+import geopandas as gpd
+import rioxarray
 
-def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30"):
+def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30", clip_to_exact_aoi_outlines = True):
     """Loads MODIS data to an xarray dataset using Microsoft Planetary Computer"""
 
     # 1. Load aoi
@@ -40,6 +42,10 @@ def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30"):
     ndvicube = cube[f"250m_16_days_{index}"].where(cube[f"250m_16_days_{index}"] != -3000) * 0.0001
     mask = (qa_layer & 3) <= 1
     ndvicube = ndvicube.where(mask)
+
+    if clip_to_exact_aoi_outlines == True:
+        ndvicube = ndvicube.rio.clip(aoi.geometry, aoi.crs, drop=True)
+
 
     print(f"Found {len(items)} items ({ndvicube.nbytes / (1024 ** 2):.2F} MB")
 
