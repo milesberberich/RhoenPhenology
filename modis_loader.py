@@ -20,7 +20,7 @@ def modis_loader(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30", clip_
     )
 
     # 3. Search the catalog
-    print("Searching catalog")
+    print("Searching MODIS catalog")
     search = catalog.search(
         collections=["modis-13Q1-061"],
         bbox=tuple(aoi.total_bounds),

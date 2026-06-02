@@ -21,7 +21,7 @@ def landcover_loader(aoi_path, datetime="2020-01-01/2020-12-30", as_single_layer
         modifier=planetary_computer.sign_inplace)
 
     # 3. Search the catalog
-    print("Searching catalog")
+    print("Searching LC catalog")
     search = catalog.search(
         collections=["esa-cci-lc"],
         bbox=tuple(aoi.total_bounds),

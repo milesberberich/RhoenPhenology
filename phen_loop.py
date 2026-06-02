@@ -9,8 +9,12 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
     years = list(range(start_year, end_year+1))
 
     # Info what will happen
-    print(f"phenology will be calculated on the basis of {index} for the years from {start_year} to {end_year-1}.")
-    print(f"The landcover classes {get_lc_legend()class_codes} will be used")
+    print(f"phenology will be calculated on the basis of {index} for the years from {start_year} to {end_year - 1}.")
+
+    # print statement for usability
+    legend_dict = get_lc_legend()
+    class_values = [legend_dict[code] for code in class_codes]
+    print(f"The landcover classes {class_values} will be used")
     if dynamik_landcover == "True":
         print("Dynamic landcover will be used.")
     if dynamik_landcover == "False":
@@ -35,7 +39,7 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
 
         #static landcover
         if dynamik_landcover == "False":
-            y_capped = 2022
+            y_capped = 2020
 
         lc = landcover_loader(
             r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson", datetime=f"{y_capped}-01-01/{y_capped}-12-30",
