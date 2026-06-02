@@ -4,6 +4,9 @@ import rioxarray
 import joypy
 import matplotlib.pyplot as plt
 
+###################
+### ridgeplot() ###
+###################
 
 def ridgeplot(data_path, metric="SOS", band=1):
 
@@ -20,4 +23,21 @@ def ridgeplot(data_path, metric="SOS", band=1):
     df = pd.concat(df_list, ignore_index=True)
 
     joypy.joyplot(df, by="Year", column=metric, colormap=plt.cm.viridis, title=f"{metric} Over Time")
+    plt.show()
+
+
+###################
+### timeplot() ###
+###################
+
+def timeplot(datacube):
+
+    timeseries = datacube.mean(dim= ["latitude", "longitude"])
+    plt.figure(figsize=(10, 5))
+    timeseries.plot(marker='o', linestyle='-', color='green')
+    plt.title("Mean VI Time Series")
+    plt.ylabel("Mean VI")
+    plt.xlabel("Date")
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tight_layout()
     plt.show()

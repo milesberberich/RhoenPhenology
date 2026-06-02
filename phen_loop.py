@@ -17,6 +17,7 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
     print(f"The landcover classes {class_values} will be used")
     if dynamik_landcover == "True":
         print("Dynamic landcover will be used.")
+    #loading static landcover
     if dynamik_landcover == "False":
         print("Static landcover data from 2022 will be used.")
         lc = landcover_loader(
@@ -28,12 +29,11 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
     # acutal loop
     for y in tqdm(years, desc=f"Processing {index}"):
         # loading modis
-        dc_raw = modis_loader(
+        dc_raw = modis_loader16(
             r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson",
             index=index, datetime=f"{y}-01-01/{y}-12-30")
 
-        # loading landcover
-
+        # loading dynamic landcover
         # dynamik and capped LC
         if dynamik_landcover == "True":
             y_capped = y
