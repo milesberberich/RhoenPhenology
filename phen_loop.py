@@ -19,6 +19,10 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
         print("Dynamic landcover will be used.")
     if dynamik_landcover == "False":
         print("Static landcover data from 2022 will be used.")
+        lc = landcover_loader(
+            r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson",
+            datetime="2020-01-01/2020-12-30",
+            as_single_layer=True)
 
 
     # acutal loop
@@ -37,13 +41,9 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
                 y_capped = 2020
                 print(f"LC-DATA FROM 2020 was used for the year {y}")
 
-        #static landcover
-        if dynamik_landcover == "False":
-            y_capped = 2020
-
-        lc = landcover_loader(
-            r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson", datetime=f"{y_capped}-01-01/{y_capped}-12-30",
-            as_single_layer=True)
+            lc = landcover_loader(
+                r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson", datetime=f"{y_capped}-01-01/{y_capped}-12-30",
+                as_single_layer=True)
 
         # filtering modis using landcover
         dc = lc_filter(dc_raw, lc, class_codes=class_codes)
