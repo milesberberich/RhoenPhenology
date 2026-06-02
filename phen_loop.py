@@ -1,26 +1,42 @@
 from landcover_loader import *
 from modis_loader import *
 from lc_filter import *
-import rioxarray
 from dea_tools.temporal import xr_phenology
 from tqdm.auto import tqdm
 
-def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True):
+def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True, dynamik_landcover = "False"):
 
     years = list(range(start_year, end_year+1))
 
+    # Info what will happen
+    print(f"phenology will be calculated on the basis of {index} for the years from {start_year} to {end_year-1}.")
+    print(f"The landcover classes {get_lc_legend()class_codes} will be used")
+    if dynamik_landcover == "True":
+        print("Dynamic landcover will be used.")
+    if dynamik_landcover == "False":
+        print("Static landcover data from 2022 will be used.")
+
+
+    # acutal loop
     for y in tqdm(years, desc=f"Processing {index}"):
-
-
         # loading modis
         dc_raw = modis_loader(
             r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson",
             index=index, datetime=f"{y}-01-01/{y}-12-30")
 
         # loading landcover
-        y_capped = y
-        if y > 2020:
-            y_capped = 2020
+
+        # dynamik and capped LC
+        if dynamik_landcover == "True":
+            y_capped = y
+            if y > 2020:
+                y_capped = 2020
+                print(f"LC-DATA FROM 2020 was used for the year {y}")
+
+        #static landcover
+        if dynamik_landcover == "False":
+            y_capped = 2022
+
         lc = landcover_loader(
             r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson", datetime=f"{y_capped}-01-01/{y_capped}-12-30",
             as_single_layer=True)
@@ -41,8 +57,9 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
             band_names = multiband_array.band.values.tolist()
             multiband_array.attrs["long_name"] = band_names
             multiband_array.rio.to_raster(
-                f"{output_filepath}/phenology_{index}_{y}.tif.tif")
+                f"{output_filepath}/phenology_{index}_{y}.tif")
 
     tqdm.write(f"Saved {y} - {index}!")
+
 
 

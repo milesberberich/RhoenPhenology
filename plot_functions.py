@@ -5,9 +5,9 @@ import joypy
 import matplotlib.pyplot as plt
 
 
-def plot_ridgeplot_simple(data_dir, metric="SOS", band=1):
+def ridgeplot(data_path, metric="SOS", band=1):
 
-    files = sorted(glob.glob(f"{data_dir}/phenology_*_*.tif"))
+    files = sorted(glob.glob(f"{data_path}/phenology_*_*.tif"))
     df_list = []
 
     for f in files:
