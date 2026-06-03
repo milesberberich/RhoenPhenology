@@ -3,8 +3,10 @@ from modis_loader import *
 from lc_filter import *
 from dea_tools.temporal import xr_phenology
 from tqdm.auto import tqdm
+from smooth_timeseries import *
+from plot_functions import *
 
-def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True, dynamik_landcover = "False"):
+def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True, dynamik_landcover = "False", temporal_res = "8", window_size = 4, smoothing = "True"):
 
     years = list(range(start_year, end_year+1))
 
@@ -24,14 +26,20 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
             r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson",
             datetime="2020-01-01/2020-12-30",
             as_single_layer=True)
+    if smoothing == "True": print("Smoothing will be used.")
 
 
     # acutal loop
     for y in tqdm(years, desc=f"Processing {index}"):
         # loading modis
-        dc_raw = modis_loader16(
-            r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson",
-            index=index, datetime=f"{y}-01-01/{y}-12-30")
+        if temporal_res == "16":
+            dc_raw = modis_loader16(
+                r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson",
+                index=index, datetime=f"{y}-01-01/{y}-12-30")
+        if temporal_res == "8":
+            dc_raw =modis_loader8(
+                r"C:\Users\miles\OneDrive\Dokumente\EAGLE SoSe\Linking science\gis\geodata\bioreservat_rhön.geojson",
+                datetime=f"{y}-01-01/{y}-12-30")
 
         # loading dynamic landcover
         # dynamik and capped LC
@@ -47,6 +55,14 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
 
         # filtering modis using landcover
         dc = lc_filter(dc_raw, lc, class_codes=class_codes)
+
+
+        # smooting time series
+
+        if smoothing == "True": dc = smooth_timeseries(dc, window_size = window_size)
+
+        #plotting time series
+        timeplot(dc, title=f"Smoothed Time Series from {y}")
 
         # calulating phenology
         phenology = xr_phenology(dc, stats=['SOS', 'POS', 'EOS', 'Trough', 'vSOS', 'vPOS', 'vEOS', 'LOS', 'AOS', 'ROG', 'ROS'])
