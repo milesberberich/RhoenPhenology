@@ -15,16 +15,30 @@ def smooth_timeseries(dc, filter = "savgol", window_size=4):
         dc_smooth = dc_filled.rolling(time=window_size, center=True, min_periods=1).mean()
         dc_smooth = dc_smooth.bfill(dim="time").ffill(dim="time")
 
-    if filter == "savgol":
 
-        dc["time"] = pd.to_datetime(dc["time"].values)
-        val = dc.time.values[0]
-        print(type(val))
-        dc_smooth = xrscipy.signal.savgol_filter(
-            dc,
-            window_length=60,
-            polyorder=2,
-            dim="time",
-            mode="interp")
+
+    if filter == "savgol":
+        # window_size = number of time steps (not days)
+        # must be odd
+        dc_smooth = dc.copy()
+        dc_smooth = dc_smooth.bfill(dim="time").ffill(dim="time")
+        window = window_size if window_size % 2 != 0 else window_size + 1
+
+        dc_smooth = xr.apply_ufunc(
+            savgol_filter,
+            dc_smooth,
+            kwargs={
+                "window_length": window,
+                "polyorder": 2,
+                "axis": -1,  # apply along last axis (time)
+                "mode": "interp"
+            },
+            input_core_dims=[["time"]],
+            output_core_dims=[["time"]],
+            vectorize=False,
+            keep_attrs=True,
+        )
+
+    return dc_smooth
 
     return dc_smooth
