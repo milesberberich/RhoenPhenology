@@ -2,36 +2,32 @@ import xarray as xr
 import numpy as np
 
 
-def get_phenology(year_dc):
-    """Calculates SOS and EOS for a single year of data."""
+def get_phenology(dc):
+    """Calculate SOS, EOS, and MAX_NDVI using a 50% amplitude threshold."""
 
-    # 1. defining threshold
-    ndvi_min = year_dc.min(dim='time')
-    ndvi_max = year_dc.max(dim='time')
-    amplitude = ndvi_max - ndvi_min
-    threshold = ndvi_min + (0.5 * amplitude)
+    ndvi_min = dc.min(dim="time", skipna=True)
+    ndvi_max = dc.max(dim="time", skipna=True)
+    threshold = ndvi_min + 0.5 * (ndvi_max - ndvi_min)
 
-    # find yearly max
-    peak_time = year_dc.idxmax(dim='time')
+    peak_idx = dc.fillna(-9999).argmax(dim="time")
+    time_idx = xr.DataArray(np.arange(len(dc.time)), dims="time")
 
-    # Splitting year in spring and autumn
-    is_spring = year_dc['time'] <= peak_time
-    is_autumn = year_dc['time'] > peak_time
+    above = dc > threshold
 
-    # 4. SOS: first day abouve threshold
-    spring_pixels = year_dc.where(is_spring & (year_dc > threshold))
-    sos_date = spring_pixels.idxmax(dim='time')  # Date of crossing
-    sos_doy = sos_date.dt.dayofyear
+    # SOS: first timestep above threshold before (and including) the peak
+    spring = above & (time_idx <= peak_idx)
+    sos_idx = spring.astype(float).argmax(dim="time")
+    sos_doy = dc.time.dt.dayofyear.isel(time=sos_idx)
 
-    # EOS, last day above threshold
-    autumn_pixels = year_dc.where(is_autumn & (year_dc > threshold))
-    eos_date = autumn_pixels.idxmax(dim='time')
-    eos_doy = eos_date.dt.dayofyear
+    # EOS: last timestep above threshold after the peak
+    # hier weirder trick mit time auf reverse um dann "erste" statt letzten zu finden
+    fall = above & (time_idx > peak_idx)
+    eos_idx_rev = fall.astype(float).isel(time=slice(None, None, -1)).argmax(dim="time")
+    eos_idx = (len(dc.time) - 1) - eos_idx_rev
+    eos_doy = dc.time.dt.dayofyear.isel(time=eos_idx)
 
-    # Combine into a new Dataset
-    return xr.Dataset({
-        'SOS': sos_doy,
-        'EOS': eos_doy,
-        'MAX_NDVI': ndvi_max
-    })
+    # LOS
+    los_doy = eos_doy - sos_doy
+
+    return xr.Dataset({"SOS": sos_doy, "EOS": eos_doy, "LOS": los_doy, "MAX_NDVI": ndvi_max})
 
