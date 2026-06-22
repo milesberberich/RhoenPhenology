@@ -4,9 +4,10 @@ from lc_filter import *
 from dea_tools.temporal import xr_phenology
 from tqdm.auto import tqdm
 from smooth_timeseries import *
+from get_phenology import *
 from plot_functions import *
 
-def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True, dynamik_landcover = "False", temporal_res = "8", window_size = 4, smoothing = "True"):
+def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True, dynamik_landcover = "False", temporal_res = "8", window_size = 4, smoothing = "True", hist = "True"):
 
     years = list(range(start_year, end_year+1))
 
@@ -55,20 +56,25 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
 
         # filtering modis using landcover
         dc = lc_filter(dc_raw, lc, class_codes=class_codes)
+        print("Modis clipped to landcover.")
 
 
         # smooting time series
-
         if smoothing == "True": dc = smooth_timeseries(dc, window_size = window_size)
+        if smoothing == "True": print("Timeseries was smoothed.")
 
         #plotting time series
         timeplot(dc, title=f"Smoothed Time Series from {y}")
 
         # calulating phenology
-        phenology = xr_phenology(dc, stats=['SOS', 'POS', 'EOS', 'Trough', 'vSOS', 'vPOS', 'vEOS', 'LOS', 'AOS', 'ROG', 'ROS'])
-
-        # filter results
+        phenology = get_phenology(dc)
         phenology = lc_filter(phenology, lc, class_codes=class_codes)
+        print("Phenology indicators were calculated.")
+
+
+
+        if hist: phenology["SOS"].plot.hist(bins=50)
+
 
         # saving results
         if Save == True:
