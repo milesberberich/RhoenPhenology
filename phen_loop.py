@@ -7,7 +7,7 @@ from smooth_timeseries import *
 from get_phenology import *
 from plot_functions import *
 
-def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60, 70, 90], Save = True, dynamik_landcover = "False", temporal_res = "8", window_size = 4, smoothing = "True", hist = "True"):
+def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60], Save = True, dynamik_landcover = "False", temporal_res = "16", window_size = 5, smoothing = "True", hist = "True"):
 
     years = list(range(start_year, end_year+1))
 
@@ -67,13 +67,13 @@ def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes
         timeplot(dc, title=f"Smoothed Time Series from {y}")
 
         # calulating phenology
-        phenology = get_phenology(dc)
-        phenology = lc_filter(phenology, lc, class_codes=class_codes)
+        phenology = get_phenology(dc.transpose("time", "latitude", "longitude"))
         print("Phenology indicators were calculated.")
 
 
 
         if hist: phenology["SOS"].plot.hist(bins=50)
+        if hist: phenology["EOS"].plot.hist(bins=50)
 
 
         # saving results
