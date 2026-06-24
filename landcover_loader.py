@@ -63,5 +63,6 @@ def get_lc_legend():
                   90: "Tree cover, mixed leaf type (broadleaved and needleleaved)",
                   100: "Mosaic tree and shrub (>50%) / herbaceous cover (<50%)",
                   110: "Mosaic herbaceous cover (>50%) / tree and shrub (<50%)", 130: "Grassland",
+                  130: "Grassland",
                   180: "Shrub or herbaceous cover, flooded, fresh/saline/brakish water", 190: "Urban areas"}
     return cci_legend
