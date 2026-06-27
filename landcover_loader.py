@@ -23,7 +23,7 @@ def landcover_loader(aoi_path, datetime="2020-01-01/2020-12-30", as_single_layer
     # 3. Search the catalog
     print("Searching LC catalog")
     search = catalog.search(
-        collections=["esa-cci-lc"],
+            collections=["esa-cci-lc"],
         bbox=tuple(aoi.total_bounds),
         datetime=datetime
     )
@@ -59,6 +59,7 @@ def get_lc_legend():
                   40: "Mosaic natural vegetation (tree, shrub, herbaceous cover) (>50%) / cropland (<50%)",
                   60: "Tree cover, broadleaved, deciduous, closed to open (>15%)",
                   61: "Tree cover, broadleaved, deciduous, closed (>40%)",
+                  62: "Tree cover, broadleaved, deciduous, open (15‐40%)",
                   70: "Tree cover, needleleaved, evergreen, closed to open (>15%)",
                   90: "Tree cover, mixed leaf type (broadleaved and needleleaved)",
                   100: "Mosaic tree and shrub (>50%) / herbaceous cover (<50%)",
