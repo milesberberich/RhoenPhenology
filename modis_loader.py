@@ -35,7 +35,8 @@ def modis_loader16(aoi_path, index="NDVI", datetime="2025-01-01/2025-06-30", cli
         bands=[f"250m_16_days_{index}", "250m_16_days_VI_Quality"],  # FIXED: changed 'assets' to 'bands'
         bbox=tuple(aoi.total_bounds),
         crs="EPSG:4326",
-        resolution=0.00225
+        resolution=0.00225,
+        fail_on_error=False,
     )
 
     # 5. NAN-handling, scaling and masking
