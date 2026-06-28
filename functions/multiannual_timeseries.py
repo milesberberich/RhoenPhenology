@@ -1,7 +1,7 @@
-from modis_loader import *
-from landcover_loader import *
-from lc_filter import *
-from smooth_timeseries import *
+from functions.modis_loader import *
+from functions.landcover_loader import *
+from functions.lc_filter import *
+from functions.smooth_timeseries import *
 
 
 def multiannual_timeseries(aoi_path, start_year = 2000, end_year = 2025, landcover_code = [60]):

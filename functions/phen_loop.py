@@ -1,11 +1,11 @@
-from landcover_loader import *
-from modis_loader import *
-from lc_filter import *
+from functions.landcover_loader import *
+from functions.modis_loader import *
+from functions.lc_filter import *
 from dea_tools.temporal import xr_phenology
 from tqdm.auto import tqdm
-from smooth_timeseries import *
-from get_phenology import *
-from plot_functions import *
+from functions.smooth_timeseries import *
+from functions.get_phenology import *
+from functions.plot_functions import *
 
 def phen_loop(start_year, end_year, output_filepath, index = "NDVI", class_codes = [60], Save = True, dynamik_landcover = "False", temporal_res = "16", window_size = 5, smoothing = "True", hist = "True"):
 
