@@ -15,4 +15,7 @@ def mk_test(decomposition):
         output_dtypes=[float],
     )
 
-    return trend_slope
+    increasing = trend_slope.where(trend_slope > 0)
+    decreasing = trend_slope.where(trend_slope < 0)
+
+    return trend_slope, increasing, decreasing
