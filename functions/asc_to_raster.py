@@ -1,75 +1,56 @@
-
 import numpy as np
 import rasterio
 from rasterio.transform import from_origin
+from rasterio.mask import mask as rio_mask
+from pathlib import Path
+import json
+from shapely.geometry import shape
+from shapely.ops import transform as shp_transform
+from pyproj import Transformer
 
-def asc_to_raster(asc_path: str, output_path: str, crs: str = "EPSG:31467") -> None:
-    """
-    Convert an ASC file to a GeoTIFF raster.
+def asc_to_raster(asc_path, output_path, crs="EPSG:25832", clip_geojson=None):
 
-    Args:
-        asc_path:    Path to the input .asc file
-        output_path: Path for the output .tif file
-        crs:         CRS of the input data — defaults to EPSG:31467 (Gauss-Krüger Zone 3)
-    """
-    with open(asc_path, "r") as f:
+    with open(asc_path) as f:
         lines = f.readlines()
 
-    # --- Parse header ---
-    header = {}
-    data_start = 0
-    for i, line in enumerate(lines):
-        parts = line.strip().split()
-        if len(parts) == 2 and not parts[0].lstrip("-").isdigit():
-            header[parts[0].lower()] = float(parts[1])
-            data_start = i + 1
-        else:
-            break
+    header, i = {}, 0
+    while len(lines[i].split()) == 2 and not lines[i].split()[0].lstrip("-").isdigit():
+        k, v = lines[i].split()
+        header[k.lower()] = float(v)
+        i += 1
 
-    ncols     = int(header["ncols"])
-    nrows     = int(header["nrows"])
-    cellsize  = header["cellsize"]
-    nodata    = header.get("nodata_value", -9999)
+    ncols, nrows, cellsize = int(header["ncols"]), int(header["nrows"]), header["cellsize"]
+    xll = header.get("xllcorner") or header["xllcenter"] - cellsize / 2
+    yll = header.get("yllcorner") or header["yllcenter"] - cellsize / 2
 
-    # Handle both corner and center registration
-    if "xllcorner" in header:
-        xll = header["xllcorner"]
-        yll = header["yllcorner"]
-    else:
-        # Shift from cell center to cell corner
-        xll = header["xllcenter"] - cellsize / 2
-        yll = header["yllcenter"] - cellsize / 2
+    data = np.array(lines[i:], dtype=str)
+    data = np.hstack([r.split() for r in data]).astype(np.float32).reshape(nrows, ncols)
+    data[data == header.get("nodata_value", -9999)] = np.nan
 
-    # --- Parse data ---
-    values = []
-    for line in lines[data_start:]:
-        values.extend(float(v) for v in line.strip().split())
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
-    data = np.array(values, dtype=np.float32).reshape(nrows, ncols)
-    data[data == nodata] = np.nan
+    profile = dict(driver="GTiff", height=nrows, width=ncols, count=1, dtype="float32",
+                   crs=crs, transform=from_origin(xll, yll + nrows * cellsize, cellsize, cellsize), nodata=np.nan)
 
-    # --- Build transform ---
-    # from_origin expects the top-left corner (xll, yll + nrows * cellsize)
-    transform = from_origin(
-        west  = xll,
-        north = yll + nrows * cellsize,
-        xsize = cellsize,
-        ysize = cellsize,
-    )
-
-    # --- Write GeoTIFF ---
-    with rasterio.open(
-        output_path,
-        mode    = "w",
-        driver  = "GTiff",
-        height  = nrows,
-        width   = ncols,
-        count   = 1,
-        dtype   = "float32",
-        crs     = crs,
-        transform = transform,
-        nodata  = np.nan,
-    ) as dst:
+    with rasterio.open(output_path, "w", **profile) as dst:
         dst.write(data, 1)
 
-    print(f"Saved raster to {output_path}  ({ncols}×{nrows}, CRS={crs})")
+    from pyproj import Transformer
+    from shapely.ops import transform as shp_transform
+
+    if clip_geojson:
+        geojson = json.load(open(clip_geojson))
+        geoms = [f["geometry"] for f in geojson["features"]] if geojson["type"] == "FeatureCollection" else [geojson]
+
+        t = Transformer.from_crs("EPSG:25832", "EPSG:31467", always_xy=True)
+        geoms = [shp_transform(t.transform, shape(g)).__geo_interface__ for g in [shape(g) for g in geoms]]
+
+        with rasterio.open(output_path) as src:
+            clipped, tf = rio_mask(src, geoms, crop=True, nodata=-9999)
+            profile = {**src.meta, "height": clipped.shape[1], "width": clipped.shape[2], "transform": tf}
+
+        clipped = clipped.astype(np.float32)
+        clipped[clipped == -9999] = np.nan
+
+        with rasterio.open(output_path, "w", **profile) as dst:
+            dst.write(clipped)
