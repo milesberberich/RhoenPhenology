@@ -117,7 +117,6 @@ def xarray_ridgeplot(da, bands=None, title=None, valid_range=(1, 366)):
     """
     Simplified Yearwise ridge (joy) plot from an xarray DataArray.
     """
-    # ── 1.  Resolve which bands to plot ──────────────────────────────────────
     has_band_dim = "band" in da.dims
     if not has_band_dim:
         band_list = [None]
@@ -131,8 +130,6 @@ def xarray_ridgeplot(da, bands=None, title=None, valid_range=(1, 366)):
     lo, hi = valid_range
     frames = []
 
-    # ── 2.  Format into a "WIDE" DataFrame (One column per band) ─────────────
-    # Using pd.Series automatically handles unequal valid pixel counts by padding with NaNs
     for t in da.time.values:
         year_str = str(pd.Timestamp(t).year)
         data_dict = {"Year": year_str}
@@ -152,10 +149,10 @@ def xarray_ridgeplot(da, bands=None, title=None, valid_range=(1, 366)):
     df = pd.concat(frames, ignore_index=True)
     year_order = sorted(df["Year"].dropna().unique())
     cols_to_plot = band_list if has_band_dim else ["value"]
-    # ── 3.  Plot natively using Joypy ────────────────────────────────────────
-    figsize = (10, max(4, len(year_order) * 0.55))
 
-    band_colors = ['#1f77b4', '#d62728', '#2ca02c', '#ff7f0e', '#9467bd']
+    figsize = (10, max(4, len(year_order)*1.533))
+
+    band_colors = ['#2ca02c', '#d62728', '#1f77b4', '#ff7f0e', '#9467bd']
 
     if title is None:
         title = "Ridge plot" if not has_band_dim else f"Ridge plot – {', '.join(str(b) for b in band_list)}"
@@ -177,7 +174,8 @@ def xarray_ridgeplot(da, bands=None, title=None, valid_range=(1, 366)):
         figsize=figsize,
         linewidth=1.0,
         alpha=0.85,
-        overlap=10,
+        overlap=2,
+        bw_method=0.28,
         legend=show_legend,
         title=title,
         color=plot_color,

@@ -8,7 +8,7 @@ def mean_timeseries(folder_path, bands=[1, 2, 3]):
     Calculates the spatial mean for a specific list of 3 bands across a folder of TIFFs.
     Returns 3 separate 1D numpy arrays.
     """
-    tiff_files = sorted(glob.glob(f"{folder_path}/*.tif"))
+    tiff_files = sorted(glob.glob(f"{glob.escape(folder_path)}/*.tif"))
 
     # Setup lists for the 3 time series
     series1, series2, series3 = [], [], []

@@ -49,6 +49,54 @@ def landcover_loader(aoi_path, datetime="2020-01-01/2020-12-30", as_single_layer
 
     return cube
 
+
+################################
+####### landcover_loader_dwd()#####
+################################
+
+def landcover_loader_dwd(aoi_path, datetime="2020-01-01/2020-12-30", as_single_layer=False, clip_to_exact_aoi_outlines=True,
+                     crs="EPSG:4326"):
+    """similar to landcover_loader but handles DWD CRS"""
+
+
+    aoi_native = gpd.read_file(aoi_path)
+    aoi_4326 = aoi_native.to_crs("EPSG:4326")
+    aoi_target = aoi_native.to_crs(crs)
+
+    catalog = pystac_client.Client.open(
+        "https://planetarycomputer.microsoft.com/api/stac/v1",
+        modifier=planetary_computer.sign_inplace)
+
+    print("Searching LC catalog")
+    search = catalog.search(
+        collections=["esa-cci-lc"],
+        bbox=tuple(aoi_4326.total_bounds),  # <-- FIXED
+        datetime=datetime
+    )
+    items = search.item_collection()
+
+    cube = odc.stac.load(
+        items,
+        bands=["lccs_class"],
+        bbox=tuple(aoi_4326.total_bounds),  # <-- FIXED
+        crs="EPSG:4326",
+        resolution=0.00225
+    )
+    cube = cube.squeeze("time")
+
+    if crs != "EPSG:4326":
+        cube = cube.rio.write_crs("EPSG:4326").rio.reproject(crs)
+
+    if as_single_layer:
+        cube = cube["lccs_class"]
+
+    # Option to instantly clip to exact aoi outlines using the target CRS
+    if clip_to_exact_aoi_outlines:
+        cube = cube.rio.clip(aoi_target.geometry, aoi_target.crs, drop=True)
+
+    print("landcover loaded")
+    return cube
+
 ################################
 ####### get_lc_legend() ########
 ################################
